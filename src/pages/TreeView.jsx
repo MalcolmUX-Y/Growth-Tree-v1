@@ -12,6 +12,7 @@ export default function TreeView() {
   const { tree, nodes, loading, error, addNode, updateNode, deleteNode, updateTree } = useTree(id)
   const { trees, createTree, deleteTree } = useTrees()
   const [selectedId, setSelectedId] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const selectedNode = nodes.find(n => n.id === selectedId) ?? null
   const shareUrl = `${window.location.origin}${window.location.pathname}#/t/${id}`
@@ -38,29 +39,66 @@ export default function TreeView() {
         onRename={name => updateTree({ name })}
         onBack={() => navigate('/')}
       />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 3, background: '#f0ede4', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ flex: 1, background: '#f0ede4', overflow: 'hidden' }}>
           <Canvas nodes={nodes} selectedNodeId={selectedId} onSelectNode={setSelectedId} />
         </div>
-        <div style={{ flex: 1, minWidth: 160, maxWidth: 220, overflow: 'hidden' }}>
-          <Sidebar
-            node={selectedNode}
-            onUpdate={updateNode}
-            onAddBranch={addNode}
-            onDelete={handleDelete}
-            HomeContent={
-              <TreeList
-                trees={trees}
-                loading={false}
-                onSelect={tid => navigate(`/t/${tid}`)}
-                onCreate={handleCreate}
-                onDelete={async (tid) => {
-                  await deleteTree(tid)
-                  if (tid === id) navigate('/')
-                }}
-              />
-            }
-          />
+
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          title={sidebarOpen ? 'Hide panel' : 'Show panel'}
+          style={{
+            position: 'absolute',
+            right: sidebarOpen ? 220 : 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            width: 20,
+            height: 48,
+            border: '0.5px solid #e5e5e3',
+            borderRight: sidebarOpen ? '0.5px solid #e5e5e3' : 'none',
+            borderRadius: sidebarOpen ? '6px 0 0 6px' : '0 6px 6px 0',
+            background: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 11,
+            color: '#9ca3af',
+            padding: 0,
+            transition: 'right 0.2s ease',
+          }}
+        >
+          {sidebarOpen ? '›' : '‹'}
+        </button>
+
+        <div style={{
+          width: sidebarOpen ? 220 : 0,
+          minWidth: 0,
+          overflow: 'hidden',
+          transition: 'width 0.2s ease',
+          flexShrink: 0,
+        }}>
+          <div style={{ width: 220 }}>
+            <Sidebar
+              node={selectedNode}
+              onUpdate={updateNode}
+              onAddBranch={addNode}
+              onDelete={handleDelete}
+              HomeContent={
+                <TreeList
+                  trees={trees}
+                  loading={false}
+                  onSelect={tid => navigate(`/t/${tid}`)}
+                  onCreate={handleCreate}
+                  onDelete={async (tid) => {
+                    await deleteTree(tid)
+                    if (tid === id) navigate('/')
+                  }}
+                />
+              }
+            />
+          </div>
         </div>
       </div>
     </div>
