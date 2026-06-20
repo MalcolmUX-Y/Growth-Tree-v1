@@ -1,13 +1,22 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function TopBar({ treeName, shareUrl, onRename, onBack }) {
   const [copied, setCopied] = useState(false)
+  const timeoutRef = useRef(null)
 
   async function handleShare() {
-    await navigator.clipboard.writeText(shareUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      timeoutRef.current = setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // clipboard unavailable — silently ignore
+    }
   }
+
+  useEffect(() => {
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }
+  }, [])
 
   async function handleNameBlur(e) {
     const val = e.target.value.trim()
