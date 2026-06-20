@@ -1,3 +1,14 @@
+import { HashRouter, Routes, Route } from 'react-router-dom'
+import Home from './pages/Home.jsx'
+import TreeView from './pages/TreeView.jsx'
+
 export default function App() {
-  return <div style={{ padding: 20 }}>Growth Tree — setting up</div>
+  return (
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/t/:id" element={<TreeView />} />
+      </Routes>
+    </HashRouter>
+  )
 }
