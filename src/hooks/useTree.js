@@ -11,6 +11,7 @@ export function useTree(treeId) {
     if (!treeId) { setLoading(false); return }
     let cancelled = false
     async function load() {
+      setError(null)
       setLoading(true)
       const [{ data: treeData, error: tErr }, { data: nodesData, error: nErr }] = await Promise.all([
         supabase.from('trees').select('*').eq('id', treeId).single(),
@@ -49,8 +50,10 @@ export function useTree(treeId) {
   }, [])
 
   const deleteNode = useCallback(async (nodeId) => {
-    function descendants(id) {
-      return [id, ...nodes.filter(n => n.parent_id === id).flatMap(k => descendants(k.id))]
+    function descendants(id, seen = new Set()) {
+      if (seen.has(id)) return []
+      seen.add(id)
+      return [id, ...nodes.filter(n => n.parent_id === id).flatMap(k => descendants(k.id, seen))]
     }
     const ids = descendants(nodeId)
     const { error } = await supabase.from('nodes').delete().in('id', ids)
@@ -71,25 +74,36 @@ export function useTree(treeId) {
 export function useTrees() {
   const [trees, setTrees] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
+    let cancelled = false
     supabase.from('trees').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { setTrees(data ?? []); setLoading(false) })
+      .then(({ data, error: err }) => {
+        if (cancelled) return
+        if (err) { setError(err); setLoading(false); return }
+        setTrees(data ?? [])
+        setLoading(false)
+      })
+    return () => { cancelled = true }
   }, [])
 
   const createTree = useCallback(async (name, rootLabel) => {
-    const { data: treeData } = await supabase.from('trees')
+    const { data: treeData, error: treeErr } = await supabase.from('trees')
       .insert({ name, root_label: rootLabel }).select().single()
-    if (treeData) {
-      await supabase.from('nodes').insert({
-        tree_id: treeData.id, parent_id: null,
-        label: rootLabel, state: 'bud',
-        growth_phase: 0, position: 0, detail: null
-      })
-      setTrees(prev => [treeData, ...prev])
+    if (treeErr || !treeData) return null
+    const { error: nodeErr } = await supabase.from('nodes').insert({
+      tree_id: treeData.id, parent_id: null,
+      label: rootLabel, state: 'bud',
+      growth_phase: 0, position: 0, detail: null
+    })
+    if (nodeErr) {
+      await supabase.from('trees').delete().eq('id', treeData.id)
+      return null
     }
+    setTrees(prev => [treeData, ...prev])
     return treeData
   }, [])
 
-  return { trees, loading, createTree }
+  return { trees, loading, error, createTree }
 }
