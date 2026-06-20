@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function TreeList({ trees = [], loading, onSelect, onCreate }) {
+export default function TreeList({ trees = [], loading, onSelect, onCreate, onDelete }) {
   const [name, setName] = useState('')
   const [rootLabel, setRootLabel] = useState('')
   const [creating, setCreating] = useState(false)
@@ -24,13 +24,25 @@ export default function TreeList({ trees = [], loading, onSelect, onCreate }) {
         <p style={{ fontSize: 12, color: '#9ca3af' }}>No trees yet.</p>
       )}
       {trees.map(t => (
-        <button
-          key={t.id}
-          onClick={() => onSelect(t.id)}
-          style={{ justifyContent: 'flex-start', textAlign: 'left' }}
-        >
-          {t.name}
-        </button>
+        <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button
+            onClick={() => onSelect(t.id)}
+            style={{ justifyContent: 'flex-start', textAlign: 'left', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {t.name}
+          </button>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(t.id)}
+              title="Delete tree"
+              style={{ flexShrink: 0, padding: '4px 6px', fontSize: 11, color: '#9ca3af', border: '0.5px solid transparent', background: 'none' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = 'transparent' }}
+            >
+              ×
+            </button>
+          )}
+        </div>
       ))}
 
       <hr />

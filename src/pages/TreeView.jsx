@@ -10,7 +10,7 @@ export default function TreeView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { tree, nodes, loading, error, addNode, updateNode, deleteNode, updateTree } = useTree(id)
-  const { trees, createTree } = useTrees()
+  const { trees, createTree, deleteTree } = useTrees()
   const [selectedId, setSelectedId] = useState(null)
 
   const selectedNode = nodes.find(n => n.id === selectedId) ?? null
@@ -54,6 +54,10 @@ export default function TreeView() {
                 loading={false}
                 onSelect={tid => navigate(`/t/${tid}`)}
                 onCreate={handleCreate}
+                onDelete={async (tid) => {
+                  await deleteTree(tid)
+                  if (tid === id) navigate('/')
+                }}
               />
             }
           />

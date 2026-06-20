@@ -4,7 +4,7 @@ import TreeList from '../components/TreeList.jsx'
 
 export default function Home() {
   const navigate = useNavigate()
-  const { trees, loading, createTree } = useTrees()
+  const { trees, loading, createTree, deleteTree } = useTrees()
 
   async function handleCreate(name, rootLabel) {
     const tree = await createTree(name, rootLabel)
@@ -19,6 +19,7 @@ export default function Home() {
         loading={loading}
         onSelect={id => navigate(`/t/${id}`)}
         onCreate={handleCreate}
+        onDelete={deleteTree}
       />
     </div>
   )

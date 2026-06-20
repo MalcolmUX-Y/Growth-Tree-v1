@@ -105,5 +105,11 @@ export function useTrees() {
     return treeData
   }, [])
 
-  return { trees, loading, error, createTree }
+  const deleteTree = useCallback(async (treeId) => {
+    const { error } = await supabase.from('trees').delete().eq('id', treeId)
+    if (!error) setTrees(prev => prev.filter(t => t.id !== treeId))
+    return { error }
+  }, [])
+
+  return { trees, loading, error, createTree, deleteTree }
 }
