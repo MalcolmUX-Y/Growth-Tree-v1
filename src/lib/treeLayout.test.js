@@ -47,4 +47,13 @@ describe('layoutTree', () => {
     const { paths } = layoutTree(nodes, 700, 500)
     expect(paths[0].growthPhase).toBe(1)
   })
+
+  it('bezier path matches spec format with correct control points', () => {
+    const nodes = [n('root', null), n('child', 'root')]
+    const { positions, paths } = layoutTree(nodes, 700, 500)
+    const { x: px, y: py } = positions['root']
+    const { x: cx, y: cy } = positions['child']
+    const midY = (py + cy) / 2
+    expect(paths[0].d).toBe(`M ${px} ${py} C ${px},${midY} ${cx},${midY} ${cx},${cy}`)
+  })
 })

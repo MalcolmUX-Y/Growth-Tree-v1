@@ -1,8 +1,9 @@
 export function layoutTree(nodes, canvasWidth = 700, canvasHeight = 500) {
   if (!nodes || nodes.length === 0) return { positions: {}, paths: [] }
 
-  const root = nodes.find(n => n.parent_id === null)
-  if (!root) return { positions: {}, paths: [] }
+  const roots = nodes.filter(n => n.parent_id === null)
+  if (roots.length !== 1) return { positions: {}, paths: [] }
+  const root = roots[0]
 
   const childrenOf = {}
   nodes.forEach(n => { childrenOf[n.id] = [] })
@@ -11,11 +12,16 @@ export function layoutTree(nodes, canvasWidth = 700, canvasHeight = 500) {
   })
   Object.values(childrenOf).forEach(arr => arr.sort((a, b) => a.position - b.position))
 
-  function leafCount(id) {
+  // Precompute leaf counts once (post-order pass) → O(n)
+  const leafCounts = {}
+  function computeLeafCounts(id) {
     const kids = childrenOf[id] ?? []
-    if (kids.length === 0) return 1
-    return kids.reduce((sum, k) => sum + leafCount(k.id), 0)
+    leafCounts[id] = kids.length === 0
+      ? 1
+      : kids.reduce((sum, k) => sum + computeLeafCounts(k.id), 0)
+    return leafCounts[id]
   }
+  computeLeafCounts(root.id)
 
   function maxDepthFrom(id, d = 0) {
     const kids = childrenOf[id] ?? []
@@ -34,10 +40,10 @@ export function layoutTree(nodes, canvasWidth = 700, canvasHeight = 500) {
       y: canvasHeight - 60 - depth * rowHeight
     }
     const kids = childrenOf[nodeId] ?? []
-    const total = leafCount(nodeId)
+    const total = leafCounts[nodeId]
     let cursor = xStart
     kids.forEach(kid => {
-      const share = leafCount(kid.id) / total
+      const share = leafCounts[kid.id] / total
       assign(kid.id, cursor, cursor + share * (xEnd - xStart), depth + 1)
       cursor += share * (xEnd - xStart)
     })
