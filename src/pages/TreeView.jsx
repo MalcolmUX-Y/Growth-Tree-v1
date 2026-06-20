@@ -39,7 +39,7 @@ export default function TreeView() {
         onBack={() => navigate('/')}
       />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 3, background: '#fafaf8', overflow: 'hidden' }}>
+        <div style={{ flex: 3, background: '#f0ede4', overflow: 'hidden' }}>
           <Canvas nodes={nodes} selectedNodeId={selectedId} onSelectNode={setSelectedId} />
         </div>
         <div style={{ flex: 1, minWidth: 160, maxWidth: 220, overflow: 'hidden' }}>
