@@ -18,6 +18,25 @@ const STATE_COLOR = {
   harvested_berry: '#c2612b',
 }
 
+function splitLines(text, maxChars = 28) {
+  if (!text) return []
+  const words = text.split(' ')
+  const lines = []
+  let cur = ''
+  for (const w of words) {
+    const joined = cur ? `${cur} ${w}` : w
+    if (joined.length > maxChars && cur) {
+      lines.push(cur)
+      cur = w
+      if (lines.length === 4) break
+    } else {
+      cur = joined
+    }
+  }
+  if (cur && lines.length < 4) lines.push(cur)
+  return lines
+}
+
 export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
   const { positions, paths } = useMemo(() => layoutTree(nodes), [nodes])
 
@@ -42,8 +61,8 @@ export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
   const zoomTx = selectedPos ? 350 - selectedPos.x * ZOOM : 0
   const zoomTy = selectedPos ? 250 - selectedPos.y * ZOOM : 0
 
-  const detail = selectedNode?.detail ?? ''
-  const detailLine = detail.length > 44 ? detail.slice(0, 44) + '…' : detail
+  const detailLines = splitLines(selectedNode?.detail ?? '')
+  const lineOpacity = [1, 0.7, 0.45, 0.25]
 
   return (
     <svg
@@ -52,14 +71,13 @@ export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
       viewBox="0 0 700 500"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Transparent background to catch deselect clicks */}
       <rect
         x={0} y={0} width={700} height={500}
         fill="transparent"
         onClick={() => onSelectNode?.(null)}
       />
 
-      {/* Zoom layer — scales and translates to center the selected node */}
+      {/* Zoom layer */}
       <g style={{
         transform: selectedPos
           ? `translate(${zoomTx}px, ${zoomTy}px) scale(${ZOOM})`
@@ -97,83 +115,84 @@ export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
               opacity={resolved ? 0.7 : 1}
             >
               {isSelected && (
-                <circle r={16} fill="none" stroke="#16a34a" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.55} />
+                <circle r={16} fill="none" stroke="#16a34a" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.4} />
               )}
               <NodeIcon state={node.state} />
-              <text
-                y={26}
-                textAnchor="middle"
-                fontSize={11}
-                fontFamily="system-ui, sans-serif"
-                fill={isSelected ? '#111827' : '#78716c'}
-                fontWeight={isSelected ? '500' : '400'}
-              >
-                {node.label}
-              </text>
+              {/* Hide label when zoomed — shown in overlay instead */}
+              {!isSelected && (
+                <text
+                  y={26}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fontFamily="system-ui, sans-serif"
+                  fill="#78716c"
+                >
+                  {node.label}
+                </text>
+              )}
             </g>
           )
         })}
       </g>
 
-      {/* Overlay layer — floating callout, always at fixed screen position */}
+      {/* Overlay — information arranged around the zoomed node */}
       {selectedNode && (
         <g>
-          {/* Dashed connector from node center (canvas center after zoom) to card */}
-          <line
-            x1={350} y1={246}
-            x2={408} y2={196}
-            stroke="#c9c5bc"
-            strokeWidth={1}
-            strokeDasharray="4,3"
+          {/* State name — upper right of icon, in quotes like the sketch */}
+          <circle
+            cx={392} cy={209}
+            r={4.5}
+            fill={STATE_COLOR[selectedNode.state] ?? '#6b7280'}
           />
-          <circle cx={350} cy={246} r={2.5} fill="#c9c5bc" />
-
-          {/* Card background */}
-          <rect
-            x={408} y={166}
-            width={182}
-            height={detailLine ? 68 : 46}
-            rx={9}
-            fill="white"
-            stroke="#e5e5e3"
-            strokeWidth={0.75}
-          />
-
-          {/* State indicator + name */}
-          <circle cx={423} cy={185} r={4.5} fill={STATE_COLOR[selectedNode.state] ?? '#6b7280'} />
           <text
-            x={434} y={189}
-            fontSize={12}
+            x={402} y={214}
+            fontSize={14}
             fontFamily="system-ui, sans-serif"
             fill="#1f2937"
             fontWeight="500"
           >
-            {STATE_LABEL[selectedNode.state] ?? selectedNode.state}
+            "{STATE_LABEL[selectedNode.state] ?? selectedNode.state}"
           </text>
 
-          {/* Node label */}
-          <text
-            x={423} y={207}
-            fontSize={11}
-            fontFamily="system-ui, sans-serif"
-            fill="#6b7280"
-          >
-            {selectedNode.label.length > 22
-              ? selectedNode.label.slice(0, 22) + '…'
-              : selectedNode.label}
-          </text>
-
-          {/* Detail text */}
-          {detailLine && (
+          {/* Detail lines — to the right, fading */}
+          {detailLines.map((line, i) => (
             <text
-              x={423} y={224}
-              fontSize={10.5}
+              key={i}
+              x={392}
+              y={236 + i * 20}
+              fontSize={12 - i * 0.4}
               fontFamily="system-ui, sans-serif"
-              fill="#9ca3af"
+              fill="#6b7280"
+              opacity={lineOpacity[i]}
             >
-              {detailLine}
+              {line}
+            </text>
+          ))}
+
+          {/* No detail placeholder */}
+          {detailLines.length === 0 && (
+            <text
+              x={392} y={236}
+              fontSize={11}
+              fontFamily="system-ui, sans-serif"
+              fill="#d4d4d0"
+              fontStyle="italic"
+            >
+              no detail added
             </text>
           )}
+
+          {/* Node label — below the icon (ID line from sketch) */}
+          <text
+            x={350} y={308}
+            textAnchor="middle"
+            fontSize={11}
+            fontFamily="system-ui, sans-serif"
+            fill="#9ca3af"
+            letterSpacing="0.5"
+          >
+            {selectedNode.label}
+          </text>
         </g>
       )}
     </svg>
