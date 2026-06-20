@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Legend from './Legend.jsx'
 
 const STATES = [
   { value: 'bud', label: 'Bud', color: '#16a34a' },
@@ -13,8 +14,10 @@ export default function Sidebar({ node, onUpdate, onAddBranch, onDelete, HomeCon
 
   if (!node) {
     return (
-      <div style={{ padding: 14, height: '100%', overflowY: 'auto', borderLeft: '0.5px solid #e5e5e3' }}>
+      <div style={{ padding: 14, height: '100%', overflowY: 'auto', borderLeft: '0.5px solid #e5e5e3', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {HomeContent}
+        <hr />
+        <Legend />
       </div>
     )
   }
