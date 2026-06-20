@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function TreeList({ trees, loading, onSelect, onCreate }) {
+export default function TreeList({ trees = [], loading, onSelect, onCreate }) {
   const [name, setName] = useState('')
   const [rootLabel, setRootLabel] = useState('')
   const [creating, setCreating] = useState(false)
