@@ -7,6 +7,11 @@ const RESOLVED = new Set(['leaf', 'berry'])
 export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
   const { positions, paths } = useMemo(() => layoutTree(nodes), [nodes])
 
+  const nodeById = useMemo(
+    () => Object.fromEntries((nodes ?? []).map(n => [n.id, n])),
+    [nodes]
+  )
+
   if (!nodes || nodes.length === 0) {
     return (
       <svg width="100%" height="100%" viewBox="0 0 700 500">
@@ -20,7 +25,7 @@ export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
   return (
     <svg width="100%" height="100%" viewBox="0 0 700 500" preserveAspectRatio="xMidYMid meet">
       {paths.map(({ nodeId, growthPhase, d }) => {
-        const node = nodes.find(n => n.id === nodeId)
+        const node = nodeById[nodeId]
         const resolved = node && RESOLVED.has(node.state)
         return (
           <path
@@ -44,7 +49,7 @@ export default function Canvas({ nodes, selectedNodeId, onSelectNode }) {
           <g
             key={node.id}
             transform={`translate(${pos.x},${pos.y})`}
-            onClick={() => onSelectNode(isSelected ? null : node.id)}
+            onClick={() => onSelectNode?.(isSelected ? null : node.id)}
             style={{ cursor: 'pointer' }}
             opacity={resolved ? 0.7 : 1}
           >
