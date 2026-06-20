@@ -1,0 +1,36 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #fafaf8;
+  color: #1a1a1a;
+  height: 100vh;
+  overflow: hidden;
+}
+#root { height: 100vh; display: flex; flex-direction: column; }
+input, textarea, button { font-family: inherit; }
+input, textarea {
+  border: 0.5px solid #d4d4d0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  background: white;
+  color: inherit;
+  width: 100%;
+}
+input:focus, textarea:focus { border-color: #9ca3af; }
+button {
+  border: 0.5px solid #d4d4d0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+button:hover { background: #f5f5f3; }
+button:disabled { opacity: 0.45; cursor: default; }
+hr { border: none; border-top: 0.5px solid #e5e5e3; }
