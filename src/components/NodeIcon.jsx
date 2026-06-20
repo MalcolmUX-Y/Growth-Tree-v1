@@ -1,10 +1,12 @@
+import React from 'react'
+
 const BRANCH_COLORS = ['#6b5c4e', '#0d9488', '#e879a0']
 
 export function branchColor(growthPhase) {
   return BRANCH_COLORS[growthPhase] ?? BRANCH_COLORS[BRANCH_COLORS.length - 1]
 }
 
-export default function NodeIcon({ state }) {
+function NodeIcon({ state }) {
   if (state === 'bud') return (
     <>
       <circle r={10} fill="#16a34a" />
@@ -38,3 +40,5 @@ export default function NodeIcon({ state }) {
 
   return null
 }
+
+export default React.memo(NodeIcon)
